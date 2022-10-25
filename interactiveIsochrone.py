@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 import pandas as pd
-from scipy.interpolate import interp1d, interpn, RegularGridInterpolator
+from scipy.interpolate import interp1d, RegularGridInterpolator
 
 # to rename the model, given Gaia phot columns
 # for PARSEC models
@@ -222,7 +222,7 @@ def createInteractiveIsochrone(photfile, isochroneFile, initialGuess = [4, 0, 0,
 	def offsetMag(magVal, magCol, mM, Av):
 		return magVal + mM + (absCoeffs[magCol] - 1.)*Av
 
-	def getObsIsochone(iso, mM, Av):
+	def getObsIsochrone(iso, mM, Av):
 		color1Obs = offsetMag(iso[color1], color1, mM, Av)
 		color2Obs = offsetMag(iso[color2], color2, mM, Av)
 		magObs = offsetMag(iso[mag], mag, mM, Av)
@@ -233,7 +233,7 @@ def createInteractiveIsochrone(photfile, isochroneFile, initialGuess = [4, 0, 0,
 	# define the input for Bokeh
 	sourcePhot = ColumnDataSource(data = dict(x = data[mask][color1] - data[mask][color2], y = data[mask][mag], index = data[mask]['index']))
 	sourceCluster = ColumnDataSource(data = dict(logAge = [initialGuess[0]], FeH = [initialGuess[1]], mM = [initialGuess[2]], Av = [initialGuess[3]]))
-	sourceIso = ColumnDataSource(getObsIsochone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0]))
+	sourceIso = ColumnDataSource(getObsIsochrone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0]))
 
 	# add the photometry and isochrone to the plot
 	photRenderer = p.scatter(source = sourcePhot, x = 'x', y = 'y', alpha = 0.5, size = 3, marker = 'circle', color = 'black')
@@ -259,7 +259,7 @@ def createInteractiveIsochrone(photfile, isochroneFile, initialGuess = [4, 0, 0,
 		if (iso is not None):
 			sourceCluster.data['logAge'] = [float(ageInput.value)]
 			sourceCluster.data['FeH'] = [float(FeHInput.value)]
-			sourceIso.data = getObsIsochone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
+			sourceIso.data = getObsIsochrone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
 		else:
 			ageInput.value = str(sourceCluster.data['logAge'][0])
 			FeHInput.value = str(sourceCluster.data['FeH'][0])
@@ -271,14 +271,14 @@ def createInteractiveIsochrone(photfile, isochroneFile, initialGuess = [4, 0, 0,
 	def mMSliderCallback(attr, old, new):
 		sourceCluster.data['mM'] = [mMSlider.value]
 		iso = sourceIso.data
-		sourceIso.data = getObsIsochone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
+		sourceIso.data = getObsIsochrone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
 	mMSlider.on_change("value", mMSliderCallback)
 
 	AvSlider = Slider(start = 0, end = 3, value = initialGuess[3], step = 0.001, format = '0.000', title = "Av")
 	def AvSliderCallback(attr, old, new):
 		sourceCluster.data['Av'] = [AvSlider.value]
 		iso = sourceIso.data
-		sourceIso.data = getObsIsochone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
+		sourceIso.data = getObsIsochrone(iso, sourceCluster.data['mM'][0], sourceCluster.data['Av'][0])
 	AvSlider.on_change("value", AvSliderCallback)
 
 	# add a reset button
