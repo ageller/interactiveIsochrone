@@ -18,5 +18,5 @@ __pycache__
 ###################
 *.swp
 
-models
+*.model
 *.ecsv
